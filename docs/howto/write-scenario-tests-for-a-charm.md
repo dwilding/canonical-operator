@@ -79,6 +79,8 @@ For example, suppose that the charm we're testing uses the `KubernetesServicePat
 import pytest
 from unittest import patch
 
+from charm import MyCharm
+
 @pytest.fixture
 def my_charm():
     with patch("charm.KubernetesServicePatch"):
