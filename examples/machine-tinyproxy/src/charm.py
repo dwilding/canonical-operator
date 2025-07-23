@@ -43,6 +43,7 @@ class TinyproxyCharm(ops.CharmBase):
         super().__init__(framework)
         framework.observe(self.on.install, self._on_install)
         framework.observe(self.on.start, self._on_start)
+        framework.observe(self.on.config_changed, self._on_config_changed)
 
     def _on_install(self, event: ops.InstallEvent) -> None:
         """Install tinyproxy on the machine."""
@@ -54,6 +55,10 @@ class TinyproxyCharm(ops.CharmBase):
         self.unit.status = ops.MaintenanceStatus("starting workload")
         self._configure_and_restart()
         self.unit.status = ops.ActiveStatus()
+
+    def _on_config_changed(self, event: ops.ConfigChangedEvent) -> None:
+        """Handle config-changed event."""
+        self._configure_and_restart()
 
     def _configure_and_restart(self) -> None:
         try:
