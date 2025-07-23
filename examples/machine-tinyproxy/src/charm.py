@@ -72,11 +72,11 @@ class TinyproxyCharm(ops.CharmBase):
         self._configure_and_restart()
 
     def _configure_and_restart(self) -> None:
+        """Ensure that tinyproxy is running with the correct configuration."""
         try:
             config = self.load_config(TinyproxyConfig)
         except ValueError:
             return
-        """Ensure that tinyproxy is running with the correct configuration."""
         if not tinyproxy.is_installed():
             return
         config_changed = tinyproxy.ensure_config(8888, config.slug)
