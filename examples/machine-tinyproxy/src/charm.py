@@ -15,14 +15,25 @@
 
 """Charm the application."""
 
+import dataclasses
 import logging
 
 import ops
 
-# A standalone module for workload-specific logic (no charming concerns):
 import tinyproxy
 
 logger = logging.getLogger(__name__)
+
+
+@dataclasses.dataclass(frozen=True)
+class TinyproxyConfig:
+    """Schema for the configuration of the tinyproxy charm."""
+
+    slug: str = "example"
+    """Configures the path of the reverse proxy."""
+
+    def __post_init__(self):
+        tinyproxy.check_slug(self.slug)  # Raises ValueError if slug is invalid.
 
 
 class TinyproxyCharm(ops.CharmBase):
@@ -45,10 +56,15 @@ class TinyproxyCharm(ops.CharmBase):
         self.unit.status = ops.ActiveStatus()
 
     def _configure_and_restart(self) -> None:
+        try:
+            config = self.load_config(TinyproxyConfig)
+        except ValueError as e:
+            self.unit.status = ops.BlockedStatus(str(e))
+            return
         """Ensure that tinyproxy is running with the correct configuration."""
         if not tinyproxy.is_installed():
             return
-        config_changed = tinyproxy.ensure_config(8888, "example")
+        config_changed = tinyproxy.ensure_config(8888, config.slug)
         if not tinyproxy.is_running():
             tinyproxy.start()
         elif config_changed:

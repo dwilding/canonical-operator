@@ -31,20 +31,12 @@ charm-libs:
   - lib: operator_libs_linux.apt
     version: "0"
 
-# (Optional) Configuration options for the charm
-# This config section defines charm config options, and populates the Configure
-# tab on Charmhub.
-# More information on this section at:
-# https://canonical-charmcraft.readthedocs-hosted.com/en/stable/reference/files/charmcraft-yaml-file/#config
-# General configuration documentation:
-# https://documentation.ubuntu.com/juju/3.6/reference/configuration/#application-configuration
 config:
   options:
-    # An example config option to customise the log level of the workload
-    log-level:
+    slug:
       description: |
-        Configures the log level of gunicorn.
+        Configures the path of the reverse proxy.
 
-        Acceptable values are: "info", "debug", "warning", "error" and "critical"
-      default: "info"
+        Must match the regex [a-z0-9-]+
+      default: example
       type: string
