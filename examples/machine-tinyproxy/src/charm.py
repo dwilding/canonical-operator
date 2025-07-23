@@ -41,9 +41,22 @@ class TinyproxyCharm(ops.CharmBase):
 
     def __init__(self, framework: ops.Framework) -> None:
         super().__init__(framework)
+        framework.observe(self.on.collect_unit_status, self._on_collect_status)
         framework.observe(self.on.install, self._on_install)
         framework.observe(self.on.start, self._on_start)
         framework.observe(self.on.config_changed, self._on_config_changed)
+
+    def _on_collect_status(self, event: ops.CollectStatusEvent):
+        """Report the status of tinyproxy (runs after each event)."""
+        try:
+            self.load_config(TinyproxyConfig)
+        except ValueError as e:
+            event.add_status(ops.BlockedStatus(str(e)))
+        if not tinyproxy.is_installed():
+            event.add_status(ops.MaintenanceStatus("Waiting for tinyproxy to be installed"))
+        if not tinyproxy.is_running():
+            event.add_status(ops.MaintenanceStatus("Waiting for tinyproxy to start"))
+        event.add_status(ops.ActiveStatus())
 
     def _on_install(self, event: ops.InstallEvent) -> None:
         """Install tinyproxy on the machine."""
@@ -52,9 +65,7 @@ class TinyproxyCharm(ops.CharmBase):
 
     def _on_start(self, event: ops.StartEvent) -> None:
         """Handle start event."""
-        self.unit.status = ops.MaintenanceStatus("starting workload")
         self._configure_and_restart()
-        self.unit.status = ops.ActiveStatus()
 
     def _on_config_changed(self, event: ops.ConfigChangedEvent) -> None:
         """Handle config-changed event."""
@@ -63,8 +74,7 @@ class TinyproxyCharm(ops.CharmBase):
     def _configure_and_restart(self) -> None:
         try:
             config = self.load_config(TinyproxyConfig)
-        except ValueError as e:
-            self.unit.status = ops.BlockedStatus(str(e))
+        except ValueError:
             return
         """Ensure that tinyproxy is running with the correct configuration."""
         if not tinyproxy.is_installed():
