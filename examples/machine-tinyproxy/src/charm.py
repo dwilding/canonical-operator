@@ -79,10 +79,10 @@ class TinyproxyCharm(ops.CharmBase):
             return
         if not tinyproxy.is_installed():
             return
-        config_changed = tinyproxy.ensure_config(8888, config.slug)
+        changed = tinyproxy.ensure_config(8888, config.slug)
         if not tinyproxy.is_running():
             tinyproxy.start()
-        elif config_changed:
+        elif changed:
             tinyproxy.reload_config()
 
 
